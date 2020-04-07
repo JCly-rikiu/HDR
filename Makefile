@@ -21,10 +21,10 @@ LDFLAGS     := -L/usr/lib $(shell pkg-config --libs opencv4)
 
 .PHONY: all build clean debug release install run
 
-all: build
+all: release
 
 $(BIN_DIR)/$(TARGET): $(OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) -o $@ $^ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)

@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[]) {
   std::string image_dir = argv[1];
-  load_images(image_dir);
+  auto images = load_images(argv[1]);
 
   return 0;
 }

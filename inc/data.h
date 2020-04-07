@@ -2,7 +2,11 @@
 #define DATA
 
 #include <string>
+#include <tuple>
+#include <vector>
 
-void load_images(std::string&);
+#include <opencv2/opencv.hpp>
+
+std::vector<std::tuple<cv::Mat, double>> load_images(std::string&&);
 
 #endif
