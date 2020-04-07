@@ -1,5 +1,6 @@
 #include "data.h"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -9,7 +10,9 @@
 
 #include <opencv2/opencv.hpp>
 
-std::vector<std::tuple<cv::Mat, double>> load_images(std::string&& image_dir) {
+std::vector<std::tuple<cv::Mat, double>> load_images(std::string &&image_dir) {
+  std::cout << "Loading images..." << std::endl;
+
   std::vector<std::tuple<cv::Mat, double>> images;
 
   if (image_dir.back() != '/') image_dir += "/";
@@ -20,8 +23,8 @@ std::vector<std::tuple<cv::Mat, double>> load_images(std::string&& image_dir) {
   while (std::getline(infile, line)) {
     std::istringstream line_stream(line);
     std::string filename;
-    double t;
-    if (!(line_stream >> filename >> t)) break;
+    double shutter_speed;
+    if (!(line_stream >> filename >> shutter_speed)) break;
 
     cv::Mat image;
     image = cv::imread(image_dir + filename, cv::IMREAD_COLOR);
@@ -30,7 +33,7 @@ std::vector<std::tuple<cv::Mat, double>> load_images(std::string&& image_dir) {
       break;
     }
 
-    images.push_back({image, 1 / t});
+    images.push_back({image, 1 / shutter_speed});
   }
 
   std::sort(images.begin(), images.end(), [](auto const &t1, auto const &t2) {
