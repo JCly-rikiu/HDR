@@ -7,6 +7,6 @@
 
 #include <opencv2/opencv.hpp>
 
-std::vector<std::tuple<cv::Mat, double>> load_images(std::string&&);
+std::vector<std::tuple<cv::Mat, double>> load_images(std::string&);
 
 #endif

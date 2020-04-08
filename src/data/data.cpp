@@ -1,5 +1,3 @@
-#include "data.h"
-
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -10,12 +8,13 @@
 
 #include <opencv2/opencv.hpp>
 
-std::vector<std::tuple<cv::Mat, double>> load_images(std::string &&image_dir) {
+#include "data.h"
+
+std::vector<std::tuple<cv::Mat, double>> load_images(std::string& image_dir) {
   std::cout << "Loading images..." << std::endl;
 
   std::vector<std::tuple<cv::Mat, double>> images;
 
-  if (image_dir.back() != '/') image_dir += "/";
   std::ifstream infile(image_dir + "image_list.txt");
   if (infile.fail()) std::cerr << "fail to read file" << std::endl;
 
