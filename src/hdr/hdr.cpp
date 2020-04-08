@@ -20,7 +20,7 @@ int weight(int z) {
     return 256 - z;
 }
 
-arma::vec solve(std::vector<std::tuple<cv::Mat, double>>& image_data, int rows, int cols, int channel, std::vector<int> random_index) {
+arma::vec solve(const std::vector<std::tuple<cv::Mat, double>>& image_data, int rows, int cols, int channel, std::vector<int> random_index) {
   arma::mat A = arma::zeros<arma::mat>(rows, cols);
   arma::vec b = arma::zeros<arma::vec>(rows);
 
@@ -50,7 +50,7 @@ arma::vec solve(std::vector<std::tuple<cv::Mat, double>>& image_data, int rows, 
   return solve(A, b);
 }
 
-cv::Mat construct(std::vector<std::tuple<cv::Mat, double>>& image_data, std::vector<arma::vec> response_curve, int rows, int cols) {
+cv::Mat construct(const std::vector<std::tuple<cv::Mat, double>>& image_data, std::vector<arma::vec> response_curve, int rows, int cols) {
   cv::Mat radiance_map(rows, cols, CV_32FC3);
 
   for (int i = 0; i != rows; i++) {
@@ -59,8 +59,11 @@ cv::Mat construct(std::vector<std::tuple<cv::Mat, double>>& image_data, std::vec
       int weight_sum[3] = { 0, 0, 0 };
 
       for (auto [image, shutter_time] : image_data) {
+        auto value = image.at<cv::Vec4b>(i, j);
+        if (value[3] == 0)  // skip alpha = 0, alignment blank
+          continue;
         for (int channel = 0; channel != 3; channel++) {
-          int z = image.at<cv::Vec4b>(i, j)[channel];
+          int z = value[channel];
           radiance_sum[channel] += weight(z) * (response_curve[channel][z] - std::log(shutter_time));
           weight_sum[channel] += weight(z);
         }
@@ -75,7 +78,7 @@ cv::Mat construct(std::vector<std::tuple<cv::Mat, double>>& image_data, std::vec
   return radiance_map;
 }
 
-std::vector<int> get_random_index(std::vector<std::tuple<cv::Mat, double>>& image_data, int pixels) {
+std::vector<int> get_random_index(const std::vector<std::tuple<cv::Mat, double>>& image_data, int pixels) {
   std::random_device random_device;
   std::mt19937 random_engine(random_device());
   std::uniform_int_distribution<> dist(0, pixels - 1);
@@ -84,7 +87,7 @@ std::vector<int> get_random_index(std::vector<std::tuple<cv::Mat, double>>& imag
   while (random_index.size() < sample_num) {
     auto index = dist(random_engine);
     for (auto [image, time] : image_data) {
-      if (image.data[image.channels() * index + 3] == 0) {
+      if (image.data[image.channels() * index + 3] == 0) {  // skip alpha = 0, alignment blank
         index = -1;
         break;
       }
@@ -97,7 +100,7 @@ std::vector<int> get_random_index(std::vector<std::tuple<cv::Mat, double>>& imag
   return random_index;
 }
 
-cv::Mat hdr(std::vector<std::tuple<cv::Mat, double>>& image_data) {
+cv::Mat hdr(const std::vector<std::tuple<cv::Mat, double>>& image_data) {
   std::cout << "Constructing HDR..." << std::endl;
 
   auto img = std::get<0>(image_data[0]);

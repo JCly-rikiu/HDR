@@ -1,14 +1,15 @@
-#include "alignment.h"
-
 #include <algorithm>
 #include <iostream>
-#include <opencv2/opencv.hpp>
 #include <tuple>
 #include <vector>
 
+#include <opencv2/opencv.hpp>
+
+#include "alignment.h"
+
 const int eps = 4;
 
-std::tuple<cv::Mat, cv::Mat> create_bitmap(cv::Mat gray) {
+std::tuple<cv::Mat, cv::Mat> create_bitmap(const cv::Mat& gray) {
   cv::Mat threshold_bitmap(gray.size(), CV_8U);
   cv::Mat exclude_bitmap(gray.size(), CV_8U);
 
@@ -19,7 +20,7 @@ std::tuple<cv::Mat, cv::Mat> create_bitmap(cv::Mat gray) {
   auto median = values[values.size() / 2];
 
   for (int row = 0; row < gray.rows; row++) {
-    unsigned char* gray_pixel = gray.ptr(row);
+    const unsigned char* gray_pixel = gray.ptr(row);
     unsigned char* threshold_pixel = threshold_bitmap.ptr(row);
     unsigned char* exclude_pixel = exclude_bitmap.ptr(row);
     for (int col = 0; col < gray.cols;
@@ -33,8 +34,9 @@ std::tuple<cv::Mat, cv::Mat> create_bitmap(cv::Mat gray) {
   return {threshold_bitmap, exclude_bitmap};
 }
 
-std::tuple<cv::Mat, cv::Mat> shift_bitmap(cv::Mat& threshold, cv::Mat& exclude,
-                                          int rs, int cs) {
+std::tuple<cv::Mat, cv::Mat> shift_bitmap(const cv::Mat& threshold,
+                                          const cv::Mat& exclude, int rs,
+                                          int cs) {
   cv::Mat shift_threshold(threshold.size(), CV_8U);
   cv::Mat shift_exclude(exclude.size(), CV_8U);
 
@@ -47,8 +49,10 @@ std::tuple<cv::Mat, cv::Mat> shift_bitmap(cv::Mat& threshold, cv::Mat& exclude,
   return {shift_threshold, shift_exclude};
 }
 
-int get_diff_error(cv::Mat& center_threshold, cv::Mat& shift_threshold,
-                   cv::Mat& center_exclude, cv::Mat& shift_exclude) {
+int get_diff_error(const cv::Mat& center_threshold,
+                   const cv::Mat& shift_threshold,
+                   const cv::Mat& center_exclude,
+                   const cv::Mat& shift_exclude) {
   cv::Mat diff(center_threshold.size(), CV_8U);
   cv::bitwise_xor(center_threshold, shift_threshold, diff);
   cv::bitwise_and(diff, center_exclude, diff);
@@ -97,7 +101,7 @@ std::tuple<int, int> get_exp_shift(const cv::Mat& center_image,
   return {ret_row_shift, ret_col_shift};
 }
 
-cv::Mat mtb_alignment(cv::Mat& center_image, cv::Mat& image) {
+cv::Mat mtb_alignment(const cv::Mat& center_image, const cv::Mat& image) {
   cv::Mat center_gray, gray;
   cv::cvtColor(center_image, center_gray, cv::COLOR_RGB2GRAY);
   cv::cvtColor(image, gray, cv::COLOR_RGB2GRAY);
@@ -108,13 +112,14 @@ cv::Mat mtb_alignment(cv::Mat& center_image, cv::Mat& image) {
   cv::cvtColor(image, shift_image, cv::COLOR_RGB2RGBA, 4);
   cv::Mat mat = (cv::Mat_<double>(2, 3) << 1, 0, row_shift, 0, 1, col_shift);
   cv::warpAffine(shift_image, shift_image, mat, shift_image.size(),
-                 cv::INTER_NEAREST, cv::BORDER_CONSTANT, 255);
+                 cv::INTER_NEAREST);
 
   return shift_image;
 }
 
 std::vector<std::tuple<cv::Mat, double>> alignment(
-    std::vector<std::tuple<cv::Mat, double>>& image_data, bool skip = false) {
+    const std::vector<std::tuple<cv::Mat, double>>& image_data,
+    bool skip = false) {
   std::vector<std::tuple<cv::Mat, double>> ret_image_data;
   if (skip) {
     for (auto [image, shutter_time] : image_data) {
