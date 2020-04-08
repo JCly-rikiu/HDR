@@ -1,8 +1,9 @@
-#include "tone_mapping.h"
-
 #include <numeric>
-#include <opencv2/opencv.hpp>
 #include <vector>
+
+#include <opencv2/opencv.hpp>
+
+#include "tone_mapping.h"
 
 const double a = 0.18;
 const double eps = 0.05;
@@ -17,8 +18,7 @@ cv::Mat global_operator(const cv::Mat& radiance_map, const cv::Mat& Lm,
   for (int i = 0; i != rows; i++) {
     for (int j = 0; j != cols; j++) {
       double Lm_l = Lm.at<double>(i, j);
-      Ld.at<double>(i, j) =
-          (Lm_l * (1 + Lm_l / std::pow(Lwhite, 2))) / (1 + Lm_l);
+      Ld.at<double>(i, j) = (Lm_l * (1 + Lm_l / std::pow(Lwhite, 2))) / (1 + Lm_l);
     }
   }
 
@@ -37,8 +37,10 @@ cv::Mat local_operator(const cv::Mat& radiance_map, const cv::Mat& Lm,
   for (int i = 0; i != 8; i++) {
     cv::Mat v1(rows, cols, CV_64FC1);
     cv::Mat v2(rows, cols, CV_64FC1);
-    cv::GaussianBlur(Lm, v1, cv::Size(), alpha_1 * s, alpha_1 * s, cv::BORDER_REPLICATE);
-    cv::GaussianBlur(Lm, v2, cv::Size(), alpha_2 * s, alpha_2 * s, cv::BORDER_REPLICATE);
+    cv::GaussianBlur(Lm, v1, cv::Size(), alpha_1 * s, alpha_1 * s,
+                     cv::BORDER_REPLICATE);
+    cv::GaussianBlur(Lm, v2, cv::Size(), alpha_2 * s, alpha_2 * s,
+                     cv::BORDER_REPLICATE);
     v1s.push_back(v1);
     v2s.push_back(v2);
 
@@ -69,7 +71,7 @@ cv::Mat local_operator(const cv::Mat& radiance_map, const cv::Mat& Lm,
   return Ld;
 }
 
-cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 0) {
+cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 2) {
   std::cout << "[Tone mapping...]" << std::endl;
 
   auto rows = radiance_map.rows;
@@ -111,8 +113,8 @@ cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 0) {
                   Ld_l.at<double>(i, j) * (1.0 - blend);
         auto value = radiance_map.at<cv::Vec3d>(i, j)[channel] * Ld /
                      Lw.at<double>(i, j) * 255.0;
-        tonemap.at<cv::Vec3b>(i, j)[channel] =
-            static_cast<unsigned char>(std::clamp(value, 0.0, 255.0));
+        tonemap.at<cv::Vec3b>(i, j)[channel] = static_cast<unsigned char>(
+            std::clamp(static_cast<int>(value), 0, 255));
       }
   return tonemap;
 }

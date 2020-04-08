@@ -22,8 +22,8 @@ std::tuple<cv::Mat, cv::Mat> create_bitmap(const cv::Mat& gray) {
   cv::Mat threshold_bitmap(gray.size(), CV_8U);
   cv::Mat exclude_bitmap(gray.size(), CV_8U);
 
-  std::vector<uchar> values;
-  for (auto it = gray.begin<uchar>(), end = gray.end<uchar>(); it != end; ++it)
+  std::vector<unsigned char> values;
+  for (auto it = gray.begin<unsigned char>(), end = gray.end<unsigned char>(); it != end; ++it)
     values.push_back(*it);
   std::sort(values.begin(), values.end());
   auto median = values[values.size() / 2];
@@ -32,11 +32,9 @@ std::tuple<cv::Mat, cv::Mat> create_bitmap(const cv::Mat& gray) {
     const unsigned char* gray_pixel = gray.ptr(row);
     unsigned char* threshold_pixel = threshold_bitmap.ptr(row);
     unsigned char* exclude_pixel = exclude_bitmap.ptr(row);
-    for (int col = 0; col < gray.cols;
-         col++, gray_pixel++, threshold_pixel++, exclude_pixel++) {
+    for (int col = 0; col < gray.cols; col++, gray_pixel++, threshold_pixel++, exclude_pixel++) {
       *threshold_pixel = (*gray_pixel > median) ? 255 : 0;
-      *exclude_pixel =
-          (*gray_pixel > median - eps && *gray_pixel < median + eps) ? 0 : 255;
+      *exclude_pixel = (*gray_pixel > median - eps && *gray_pixel < median + eps) ? 0 : 255;
     }
   }
 
@@ -96,8 +94,7 @@ std::tuple<int, int> get_exp_shift(const cv::Mat& center_image,
     for (int j = -1; j <= 1; j++) {
       int rs = row_shift + i, cs = col_shift + j;
 
-      auto [shift_threshold, shift_exclude] =
-          shift_bitmap(threshold, exclude, rs, cs);
+      auto [shift_threshold, shift_exclude] = shift_bitmap(threshold, exclude, rs, cs);
 
       int error = get_diff_error(center_threshold, shift_threshold,
                                  center_exclude, shift_exclude);

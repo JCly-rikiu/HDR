@@ -11,22 +11,25 @@ int main(int argc, char *argv[]) {
   if (image_dir.back() != '/') image_dir += "/";
 
   bool skip_alignment = false;
-  int tone = 0;
+  bool ghost_removal = false;
+  int tone = 2;
   for (int i = 2; i < argc; i++) {
     std::string arg = argv[i];
     if (arg.compare("--skip-alignment") == 0)
       skip_alignment = true;
     if (arg.compare("--global-tone") == 0)
       tone = 1;
-    if (arg.compare("--local-tone") == 0)
-      tone = 2;
+    if (arg.compare("--blend-tone") == 0)
+      tone = 0;
+    if (arg.compare("--remove-ghost") == 0)
+      ghost_removal = true;
   }
 
   auto image_data = load_images(image_dir);
 
   image_data = alignment(image_data, skip_alignment);
 
-  auto radiance_map = hdr(image_data);
+  auto radiance_map = hdr(image_data, ghost_removal);
   cv::imwrite(image_dir + "raidance_map.hdr", radiance_map);
   std::cout << "\tSave radiance map to " + image_dir + "raidance_map.hdr" << std::endl;
 
