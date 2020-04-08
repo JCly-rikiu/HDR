@@ -2,10 +2,9 @@
 
 #include <algorithm>
 #include <iostream>
+#include <opencv2/opencv.hpp>
 #include <tuple>
 #include <vector>
-
-#include <opencv2/opencv.hpp>
 
 const int eps = 4;
 
@@ -105,10 +104,10 @@ cv::Mat mtb_alignment(cv::Mat& center_image, cv::Mat& image) {
 
   auto [row_shift, col_shift] = get_exp_shift(center_gray, gray, 5);
 
-  cv::Mat shift_image(image.size(), CV_8UC4);
+  cv::Mat shift_image = cv::Mat::zeros(image.size(), CV_8UC4);
   cv::cvtColor(image, shift_image, cv::COLOR_RGB2RGBA, 4);
   cv::Mat mat = (cv::Mat_<double>(2, 3) << 1, 0, row_shift, 0, 1, col_shift);
-  cv::warpAffine(image, shift_image, mat, shift_image.size(), cv::INTER_NEAREST,
+  cv::warpAffine(shift_image, shift_image, mat, shift_image.size(), cv::INTER_NEAREST,
                  cv::BORDER_CONSTANT, 255);
 
   return shift_image;
@@ -126,7 +125,7 @@ std::vector<std::tuple<cv::Mat, double>> alignment(
 
   for (size_t i = 0; i != image_data.size(); i++) {
     if (i == middle) {
-      cv::Mat temp_image(middle_image.size(), CV_8UC4);
+      cv::Mat temp_image = cv::Mat::zeros(middle_image.size(), CV_8UC4);
       cv::cvtColor(middle_image, temp_image, cv::COLOR_RGB2RGBA, 4);
       ret_image_data.push_back({temp_image, shutter_time});
       continue;

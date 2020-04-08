@@ -1,5 +1,5 @@
-#ifndef ALIGNMENT
-#define ALIGNMENT
+#ifndef ALIGNMENT_
+#define ALIGNMENT_
 
 #include <vector>
 #include <tuple>

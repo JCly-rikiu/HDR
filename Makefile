@@ -17,7 +17,7 @@ OBJS        := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 CXX         := g++
 CXXFLAGS    := -Wall -Wextra -std=c++17
 INCLUDE     := -I$(INC_DIR) $(shell pkg-config --cflags opencv4)
-LDFLAGS     := -L/usr/lib $(shell pkg-config --libs opencv4)
+LDFLAGS     := -L/usr/lib -lopenblas -llapack $(shell pkg-config --libs opencv4)
 
 .PHONY: all build clean debug release install run
 

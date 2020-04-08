@@ -1,5 +1,5 @@
-#ifndef DATA
-#define DATA
+#ifndef DATA_
+#define DATA_
 
 #include <string>
 #include <tuple>
