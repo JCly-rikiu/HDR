@@ -3,6 +3,6 @@
 
 #include <opencv2/opencv.hpp>
 
-cv::Mat tone_mapping(cv::Mat);
+cv::Mat tone_mapping(const cv::Mat&);
 
 #endif
