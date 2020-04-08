@@ -122,10 +122,10 @@ std::vector<std::tuple<cv::Mat, double>> alignment(
     bool skip = false) {
   std::vector<std::tuple<cv::Mat, double>> ret_image_data;
   if (skip) {
-    for (auto [image, shutter_time] : image_data) {
+    for (auto [image, exposure_time] : image_data) {
       cv::Mat temp_image = cv::Mat::zeros(image.size(), CV_8UC4);
       cv::cvtColor(image, temp_image, cv::COLOR_RGB2RGBA, 4);
-      ret_image_data.push_back({temp_image, shutter_time});
+      ret_image_data.push_back({temp_image, exposure_time});
     }
     return ret_image_data;
   }
@@ -134,19 +134,19 @@ std::vector<std::tuple<cv::Mat, double>> alignment(
 
   auto middle = image_data.size() / 2;
 
-  auto& [middle_image, shutter_time] = image_data[middle];
+  auto& [middle_image, exposure_time] = image_data[middle];
 
   for (size_t i = 0; i != image_data.size(); i++) {
     if (i == middle) {
       cv::Mat temp_image = cv::Mat::zeros(middle_image.size(), CV_8UC4);
       cv::cvtColor(middle_image, temp_image, cv::COLOR_RGB2RGBA, 4);
-      ret_image_data.push_back({temp_image, shutter_time});
+      ret_image_data.push_back({temp_image, exposure_time});
       continue;
     }
-    auto [image, shutter_time] = image_data[i];
+    auto [image, exposure_time] = image_data[i];
     auto shift_image = mtb_alignment(middle_image, image);
 
-    ret_image_data.push_back({shift_image, shutter_time});
+    ret_image_data.push_back({shift_image, exposure_time});
   }
 
   return ret_image_data;

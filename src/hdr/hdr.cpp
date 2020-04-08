@@ -25,14 +25,14 @@ arma::vec solve(const std::vector<std::tuple<cv::Mat, double>>& image_data, int 
   arma::vec b = arma::zeros<arma::vec>(rows);
 
   int it = 0;
-  for (auto [image, shutter_time] : image_data) {
+  for (auto [image, exposure_time] : image_data) {
     for (int i = 0; i != sample_num; i++) {
       int index = random_index[i];
       int z = image.data[image.channels() * index + channel];
       A(it, z) = weight(z);
       A(it, 256 + i) = -weight(z);
 
-      b(it) = weight(z) * std::log(shutter_time);
+      b(it) = weight(z) * std::log(exposure_time);
 
       it++;
     }
@@ -51,26 +51,26 @@ arma::vec solve(const std::vector<std::tuple<cv::Mat, double>>& image_data, int 
 }
 
 cv::Mat construct(const std::vector<std::tuple<cv::Mat, double>>& image_data, std::vector<arma::vec> response_curve, int rows, int cols) {
-  cv::Mat radiance_map(rows, cols, CV_32FC3);
+  cv::Mat radiance_map(rows, cols, CV_64FC3);
 
   for (int i = 0; i != rows; i++) {
     for (int j = 0; j != cols; j++) {
       double radiance_sum[3] = { 0.0, 0.0, 0.0 };
       int weight_sum[3] = { 0, 0, 0 };
 
-      for (auto [image, shutter_time] : image_data) {
+      for (auto [image, exposure_time] : image_data) {
         auto value = image.at<cv::Vec4b>(i, j);
         if (value[3] == 0)  // skip alpha = 0, alignment blank
           continue;
         for (int channel = 0; channel != 3; channel++) {
           int z = value[channel];
-          radiance_sum[channel] += weight(z) * (response_curve[channel][z] - std::log(shutter_time));
+          radiance_sum[channel] += weight(z) * (response_curve[channel][z] - std::log(exposure_time));
           weight_sum[channel] += weight(z);
         }
       }
 
       for (int channel = 0; channel != 3; channel++) {
-        radiance_map.at<cv::Vec3f>(i, j)[channel] = std::exp(radiance_sum[channel] / weight_sum[channel]);
+        radiance_map.at<cv::Vec3d>(i, j)[channel] = std::exp(radiance_sum[channel] / weight_sum[channel]);
       }
     }
   }
