@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
   if (image_dir.back() != '/') image_dir += "/";
   auto image_data = load_images(image_dir);
 
-  image_data = alignment(image_data, false);
+  image_data = alignment(image_data, true);
 
   auto radiance_map = hdr(image_data);
   cv::imwrite(image_dir + "raidance_map.jpg", radiance_map);
