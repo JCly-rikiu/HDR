@@ -7,6 +7,7 @@
 
 const double a = 0.18;
 const double eps = 0.05;
+const double phi = 8.0;
 
 cv::Mat global_operator(const cv::Mat& radiance_map, const cv::Mat& Lm,
                         const double Lwhite) {
@@ -31,14 +32,17 @@ cv::Mat local_operator(const cv::Mat& radiance_map, const cv::Mat& Lm,
   auto cols = radiance_map.cols;
   cv::Mat Ld(rows, cols, CV_64FC1);
 
-  double alpha = 0.35, s = 1.0;
-  std::vector<cv::Mat> blur_lum;
+  const double alpha_1 = 0.35, alpha_2 = 0.35 * 1.6;
+  double s = 1.0;
+  std::vector<cv::Mat> v1s, v2s;
   for (int i = 0; i != 8; i++) {
-    cv::Mat blur(rows, cols, CV_64FC1);
-    cv::GaussianBlur(Lm, blur, cv::Size(), alpha * s);
-    blur_lum.push_back(blur);
+    cv::Mat v1(rows, cols, CV_64FC1);
+    cv::Mat v2(rows, cols, CV_64FC1);
+    cv::GaussianBlur(Lm, v1, cv::Size(), alpha_1 * s, alpha_1 * s, cv::BORDER_REPLICATE);
+    cv::GaussianBlur(Lm, v2, cv::Size(), alpha_2 * s, alpha_2 * s, cv::BORDER_REPLICATE);
+    v1s.push_back(v1);
+    v2s.push_back(v2);
 
-    alpha *= 1.6;
     s *= 1.6;
   }
 
@@ -46,10 +50,9 @@ cv::Mat local_operator(const cv::Mat& radiance_map, const cv::Mat& Lm,
   for (int i = 0; i != rows; i++) {
     for (int j = 0; j != cols; j++) {
       int smax = 7;
-      for (int k = 0; k != 7; k++) {
+      for (int k = 0; k != 8; k++) {
         auto v =
-            (blur_lum[k].at<double>(i, j) - blur_lum[k + 1].at<double>(i, j)) /
-            (std::pow(2.0, 8.0) * a / (s * s));
+ (v1s[k].at<double>(i, j) - v2s[k].at<double>(i, j)) / (std::pow(2.0, phi) * a / (s * s) + v1s[k].at<double>(i, j));
         if (std::abs(v) < eps) {
           smax = k;
           break;
@@ -60,14 +63,14 @@ cv::Mat local_operator(const cv::Mat& radiance_map, const cv::Mat& Lm,
 
       auto Lm_l = Lm.at<double>(i, j);
       Ld.at<double>(i, j) = Lm_l * (1 + Lm_l / std::pow(Lwhite, 2)) /
-                            (1 + blur_lum[smax].at<double>(i, j));
+                            (1 + v1s[smax].at<double>(i, j));
     }
   }
 
   return Ld;
 }
 
-cv::Mat tone_mapping(const cv::Mat& radiance_map) {
+cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 0) {
   std::cout << "Tone mapping..." << std::endl;
 
   auto rows = radiance_map.rows;
@@ -96,9 +99,11 @@ cv::Mat tone_mapping(const cv::Mat& radiance_map) {
       Lm.at<double>(i, j) = Lw.at<double>(i, j) * a / lum_mean;
 
   cv::Mat tonemap(rows, cols, CV_8UC3);
-  auto Ld_g = global_operator(radiance_map, Lm, Lwhite);
-  auto Ld_l = local_operator(radiance_map, Lm, Lwhite);
   double blend = 0.5;
+  if (tone == 1) blend = 1.0;
+  if (tone == 2) blend = 0.0;
+  auto Ld_g = tone != 2 ? global_operator(radiance_map, Lm, Lwhite) : cv::Mat::zeros(radiance_map.size(), CV_64FC1);
+  auto Ld_l = tone != 1 ? local_operator(radiance_map, Lm, Lwhite) : cv::Mat::zeros(radiance_map.size(), CV_64FC1);
   for (int i = 0; i != rows; i++)
     for (int j = 0; j != cols; j++)
       for (int channel = 0; channel != 3; channel++) {
