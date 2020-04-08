@@ -4,8 +4,9 @@
 #include <opencv2/opencv.hpp>
 
 #include "tone_mapping.h"
+#include "contrast.h"
 
-const double a = 0.18;
+const double a = 0.34;
 const double eps = 0.05;
 const double phi = 8.0;
 
@@ -74,6 +75,16 @@ cv::Mat local_operator(const cv::Mat& radiance_map, const cv::Mat& Lm,
 cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 2) {
   std::cout << "[Tone mapping...]" << std::endl;
 
+  if (tone == 3)
+    return contrast(radiance_map);
+
+  if (tone == 0)
+    std::cout << "blend global and local operator" << std::endl;
+  else if (tone == 1)
+    std::cout << "global operator" << std::endl;
+  else
+    std::cout << "local operator" << std::endl;
+
   auto rows = radiance_map.rows;
   auto cols = radiance_map.cols;
 
@@ -98,7 +109,7 @@ cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 2) {
     for (int j = 0; j != cols; j++)
       Lm.at<double>(i, j) = Lw.at<double>(i, j) * a / lum_mean;
 
-  cv::Mat tonemap(rows, cols, CV_8UC3);
+  cv::Mat tonemap(rows, cols, CV_64FC3);
   double blend = 0.5;
   if (tone == 1) blend = 1.0;
   if (tone == 2) blend = 0.0;
@@ -112,9 +123,10 @@ cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 2) {
         auto Ld = Ld_g.at<double>(i, j) * (blend) +
                   Ld_l.at<double>(i, j) * (1.0 - blend);
         auto value = radiance_map.at<cv::Vec3d>(i, j)[channel] * Ld /
-                     Lw.at<double>(i, j) * 255.0;
-        tonemap.at<cv::Vec3b>(i, j)[channel] = static_cast<unsigned char>(
-            std::clamp(static_cast<int>(value), 0, 255));
+                     Lw.at<double>(i, j);
+        // value = std::pow(value, 1 / 1.2);
+        tonemap.at<cv::Vec3d>(i, j)[channel] = value * 255;
       }
+
   return tonemap;
 }

@@ -21,6 +21,8 @@ int main(int argc, char *argv[]) {
       tone = 1;
     if (arg.compare("--blend-tone") == 0)
       tone = 0;
+    if (arg.compare("--contrast-tone") == 0)
+      tone = 3;
     if (arg.compare("--remove-ghost") == 0)
       ghost_removal = true;
   }
