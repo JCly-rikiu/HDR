@@ -11,7 +11,7 @@
 #include "data.h"
 
 std::vector<std::tuple<cv::Mat, double>> load_images(std::string& image_dir) {
-  std::cout << "Loading images..." << std::endl;
+  std::cout << "[Loading images...]" << std::endl;
 
   std::vector<std::tuple<cv::Mat, double>> images;
 

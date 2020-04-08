@@ -9,6 +9,15 @@
 
 const int eps = 4;
 
+cv::Mat image_shrink2(const cv::Mat& image) {
+  cv::Mat small_image((image.rows + 1) / 2, (image.cols + 1) / 2, CV_8U);
+  for (int i = 0; i != small_image.rows; i++)
+    for (int j = 0; j != small_image.cols; j++)
+      small_image.at<unsigned char>(i, j) = image.at<unsigned char>(i * 2, j * 2);
+
+  return small_image;
+}
+
 std::tuple<cv::Mat, cv::Mat> create_bitmap(const cv::Mat& gray) {
   cv::Mat threshold_bitmap(gray.size(), CV_8U);
   cv::Mat exclude_bitmap(gray.size(), CV_8U);
@@ -70,6 +79,8 @@ std::tuple<int, int> get_exp_shift(const cv::Mat& center_image,
     cv::resize(center_image, small_center_image, cv::Size(), 0.5, 0.5,
                cv::INTER_NEAREST);
     cv::resize(image, small_image, cv::Size(), 0.5, 0.5, cv::INTER_NEAREST);
+    // auto small_center_image = image_shrink2(center_image);
+    // auto small_image = image_shrink2(image);
     auto [r, c] =
         get_exp_shift(small_center_image, small_image, shift_bits - 1);
     row_shift = r * 2;
@@ -98,6 +109,8 @@ std::tuple<int, int> get_exp_shift(const cv::Mat& center_image,
     }
   }
 
+  std::cout << "\t" << image.size() << " ";
+  std::cout << ret_row_shift << " " << ret_col_shift << std::endl;
   return {ret_row_shift, ret_col_shift};
 }
 
@@ -130,7 +143,7 @@ std::vector<std::tuple<cv::Mat, double>> alignment(
     return ret_image_data;
   }
 
-  std::cout << "Alignment..." << std::endl;
+  std::cout << "[Alignment...]" << std::endl;
 
   auto middle = image_data.size() / 2;
 
@@ -143,6 +156,7 @@ std::vector<std::tuple<cv::Mat, double>> alignment(
       ret_image_data.push_back({temp_image, exposure_time});
       continue;
     }
+    std::cout << "\timage " << i << std::endl;
     auto [image, exposure_time] = image_data[i];
     auto shift_image = mtb_alignment(middle_image, image);
 

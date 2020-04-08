@@ -101,7 +101,7 @@ std::vector<int> get_random_index(const std::vector<std::tuple<cv::Mat, double>>
 }
 
 cv::Mat hdr(const std::vector<std::tuple<cv::Mat, double>>& image_data) {
-  std::cout << "Constructing HDR..." << std::endl;
+  std::cout << "[Constructing HDR...]" << std::endl;
 
   auto img = std::get<0>(image_data[0]);
   auto pixels = img.rows * img.cols;

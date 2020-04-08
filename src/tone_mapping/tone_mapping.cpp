@@ -1,9 +1,8 @@
-#include <numeric>
-#include <vector>
-
-#include <opencv2/opencv.hpp>
-
 #include "tone_mapping.h"
+
+#include <numeric>
+#include <opencv2/opencv.hpp>
+#include <vector>
 
 const double a = 0.18;
 const double eps = 0.05;
@@ -51,8 +50,8 @@ cv::Mat local_operator(const cv::Mat& radiance_map, const cv::Mat& Lm,
     for (int j = 0; j != cols; j++) {
       int smax = 7;
       for (int k = 0; k != 8; k++) {
-        auto v =
- (v1s[k].at<double>(i, j) - v2s[k].at<double>(i, j)) / (std::pow(2.0, phi) * a / (s * s) + v1s[k].at<double>(i, j));
+        auto v = (v1s[k].at<double>(i, j) - v2s[k].at<double>(i, j)) /
+                 (std::pow(2.0, phi) * a / (s * s) + v1s[k].at<double>(i, j));
         if (std::abs(v) < eps) {
           smax = k;
           break;
@@ -71,7 +70,7 @@ cv::Mat local_operator(const cv::Mat& radiance_map, const cv::Mat& Lm,
 }
 
 cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 0) {
-  std::cout << "Tone mapping..." << std::endl;
+  std::cout << "[Tone mapping...]" << std::endl;
 
   auto rows = radiance_map.rows;
   auto cols = radiance_map.cols;
@@ -90,8 +89,7 @@ cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 0) {
     }
   }
   lum_mean = std::exp(lum_mean / (rows * cols));
-  std::cout << "lum_mean: " << lum_mean << std::endl;
-  std::cout << "Lwhite: " << Lwhite << std::endl;
+  std::cout << "\tLwhite: " << Lwhite << std::endl;
 
   cv::Mat Lm(rows, cols, CV_64FC1);
   for (int i = 0; i != rows; i++)
@@ -102,15 +100,17 @@ cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 0) {
   double blend = 0.5;
   if (tone == 1) blend = 1.0;
   if (tone == 2) blend = 0.0;
-  auto Ld_g = tone != 2 ? global_operator(radiance_map, Lm, Lwhite) : cv::Mat::zeros(radiance_map.size(), CV_64FC1);
-  auto Ld_l = tone != 1 ? local_operator(radiance_map, Lm, Lwhite) : cv::Mat::zeros(radiance_map.size(), CV_64FC1);
+  auto Ld_g = tone != 2 ? global_operator(radiance_map, Lm, Lwhite)
+                        : cv::Mat::zeros(radiance_map.size(), CV_64FC1);
+  auto Ld_l = tone != 1 ? local_operator(radiance_map, Lm, Lwhite)
+                        : cv::Mat::zeros(radiance_map.size(), CV_64FC1);
   for (int i = 0; i != rows; i++)
     for (int j = 0; j != cols; j++)
       for (int channel = 0; channel != 3; channel++) {
         auto Ld = Ld_g.at<double>(i, j) * (blend) +
                   Ld_l.at<double>(i, j) * (1.0 - blend);
         auto value = radiance_map.at<cv::Vec3d>(i, j)[channel] * Ld /
-                     Lw.at<double>(i, j) * 255;
+                     Lw.at<double>(i, j) * 255.0;
         tonemap.at<cv::Vec3b>(i, j)[channel] =
             static_cast<unsigned char>(std::clamp(value, 0.0, 255.0));
       }
