@@ -1,5 +1,4 @@
-#include "hdr.h"
-
+#include <iostream>
 #include <random>
 #include <tuple>
 #include <vector>
@@ -9,14 +8,16 @@
 #define ARMA_DONT_USE_WRAPPER
 #include <armadillo>
 
+#include "hdr.h"
+
 const int lambda = 10;
 const int sample_num = 100;
 
 int weight(int z) {
   if (z < 128)
-    return z;
+    return z + 1;
   else
-    return 255 - z;
+    return 256 - z;
 }
 
 arma::vec solve(std::vector<std::tuple<cv::Mat, double>>& image_data, int rows, int cols, int channel, std::vector<int> random_index) {
@@ -59,7 +60,7 @@ cv::Mat construct(std::vector<std::tuple<cv::Mat, double>>& image_data, std::vec
 
       for (auto [image, shutter_time] : image_data) {
         for (int channel = 0; channel != 3; channel++) {
-          int z = image.at<cv::Vec3b>(i, j)[channel];
+          int z = image.at<cv::Vec4b>(i, j)[channel];
           radiance_sum[channel] += weight(z) * (response_curve[channel][z] - std::log(shutter_time));
           weight_sum[channel] += weight(z);
         }
