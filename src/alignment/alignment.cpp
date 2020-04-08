@@ -107,17 +107,25 @@ cv::Mat mtb_alignment(cv::Mat& center_image, cv::Mat& image) {
   cv::Mat shift_image = cv::Mat::zeros(image.size(), CV_8UC4);
   cv::cvtColor(image, shift_image, cv::COLOR_RGB2RGBA, 4);
   cv::Mat mat = (cv::Mat_<double>(2, 3) << 1, 0, row_shift, 0, 1, col_shift);
-  cv::warpAffine(shift_image, shift_image, mat, shift_image.size(), cv::INTER_NEAREST,
-                 cv::BORDER_CONSTANT, 255);
+  cv::warpAffine(shift_image, shift_image, mat, shift_image.size(),
+                 cv::INTER_NEAREST, cv::BORDER_CONSTANT, 255);
 
   return shift_image;
 }
 
 std::vector<std::tuple<cv::Mat, double>> alignment(
-    std::vector<std::tuple<cv::Mat, double>>& image_data) {
-  std::cout << "Alignment..." << std::endl;
-
+    std::vector<std::tuple<cv::Mat, double>>& image_data, bool skip = false) {
   std::vector<std::tuple<cv::Mat, double>> ret_image_data;
+  if (skip) {
+    for (auto [image, shutter_time] : image_data) {
+      cv::Mat temp_image = cv::Mat::zeros(image.size(), CV_8UC4);
+      cv::cvtColor(image, temp_image, cv::COLOR_RGB2RGBA, 4);
+      ret_image_data.push_back({temp_image, shutter_time});
+    }
+    return ret_image_data;
+  }
+
+  std::cout << "Alignment..." << std::endl;
 
   auto middle = image_data.size() / 2;
 
