@@ -6,7 +6,7 @@
 #include "tone_mapping.h"
 #include "contrast.h"
 
-const double a = 0.34;
+const double a = 0.18;
 const double eps = 0.05;
 const double phi = 8.0;
 
@@ -79,11 +79,11 @@ cv::Mat tone_mapping(const cv::Mat& radiance_map, const int tone = 2) {
     return contrast(radiance_map);
 
   if (tone == 0)
-    std::cout << "blend global and local operator" << std::endl;
+    std::cout << "\tblend global and local operator" << std::endl;
   else if (tone == 1)
-    std::cout << "global operator" << std::endl;
+    std::cout << "\tglobal operator" << std::endl;
   else
-    std::cout << "local operator" << std::endl;
+    std::cout << "\tlocal operator" << std::endl;
 
   auto rows = radiance_map.rows;
   auto cols = radiance_map.cols;

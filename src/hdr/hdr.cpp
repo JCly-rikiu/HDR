@@ -83,6 +83,9 @@ cv::Mat construct(const std::vector<std::tuple<cv::Mat, double>>& image_data,
                   const int cols, const bool ghost_removal) {
   cv::Mat radiance_map(rows, cols, CV_64FC3);
 
+  if (ghost_removal)
+    std::cout << "\tremove ghost" << std::endl;
+
   for (int i = 0; i != rows; i++) {
     for (int j = 0; j != cols; j++) {
       std::deque<std::tuple<double, double>> radiance_weight[3];

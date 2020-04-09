@@ -61,7 +61,7 @@ cv::Mat contrast(const cv::Mat& radiance_map) {
         tonemap.at<cv::Vec3d>(i, j)[channel] = value / (value + std::pow(lum_mean, contrast));
       }
 
-  normalize(tonemap, 1.5);
+  normalize(tonemap, 1.3);
 
   for (int i = 0; i != rows; i++)
     for (int j = 0; j != cols; j++)

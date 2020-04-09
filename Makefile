@@ -19,7 +19,7 @@ CXXFLAGS    := -Wall -Wextra -std=c++17
 INCLUDE     := -I$(INC_DIR) $(shell pkg-config --cflags opencv4)
 LDFLAGS     := -L/usr/lib -lopenblas -llapack $(shell pkg-config --libs opencv4)
 
-.PHONY: all build clean debug release install run
+.PHONY: all build clean release install
 
 all: release
 
@@ -30,15 +30,12 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
 
-build: $(BIN_DIR)/$(TARGET)
+build:
 	@mkdir -p $(BIN_DIR)
 	@mkdir -p $(OBJ_DIR)
 
-debug: CXXFLAGS += -DDEBUG -g
-debug: all
-
 release: CXXFLAGS += -O2
-release: clean build install
+release: clean build $(BIN_DIR)/$(TARGET) install
 
 clean:
 	-@rm -rvf $(OBJ_DIR)/*
@@ -47,6 +44,3 @@ clean:
 
 install:
 	@mv $(BIN_DIR)/$(TARGET) .
-
-run:
-	./$(TARGET)

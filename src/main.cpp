@@ -32,8 +32,8 @@ int main(int argc, char *argv[]) {
   image_data = alignment(image_data, skip_alignment);
 
   auto radiance_map = hdr(image_data, ghost_removal);
-  cv::imwrite(image_dir + "raidance_map.hdr", radiance_map);
-  std::cout << "\tSave radiance map to " + image_dir + "raidance_map.hdr" << std::endl;
+  cv::imwrite(image_dir + "radiance_map.hdr", radiance_map);
+  std::cout << "\tSave radiance map to " + image_dir + "radiance_map.hdr" << std::endl;
 
   auto tonemap_image = tone_mapping(radiance_map, tone);
   cv::imwrite(image_dir + "tone.jpg", tonemap_image);
